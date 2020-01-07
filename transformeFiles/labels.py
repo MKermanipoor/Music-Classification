@@ -1,17 +1,20 @@
 from tqdm import tqdm
 import csv
 
-label_path = 'Data/testLabels.txt'
-output_path = 'Data/testLabels.csv'
+label_dic = {'3': 0, '5': 1, '6': 2, '7': 3, '9': 4}
 
-file = open(label_path, 'r')
-data = [['name', 'label']]
-for line in tqdm(file):
-    index = line.rfind(',')
-    name = line[0:index]
-    label = line[index + 1: -1]
-    data.append([name, label])
+if __name__ == '__main__':
+    label_path = 'Data/trainLabels.txt'
+    output_path = 'Data/trainLabels.csv'
 
-with open(output_path, 'w',  newline='') as output:
-    wr = csv.writer(output, quoting=csv.QUOTE_ALL)
-    wr.writerows(data)
+    file = open(label_path, 'r')
+    data = [['name', 'label']]
+    for line in tqdm(file):
+        index = line.rfind(',')
+        name = line[0:index]
+        label = label_dic[line[index + 1: -1]]
+        data.append([name, label])
+
+    with open(output_path, 'w', newline='') as output:
+        wr = csv.writer(output, quoting=csv.QUOTE_ALL)
+        wr.writerows(data)
