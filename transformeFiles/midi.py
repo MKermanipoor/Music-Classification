@@ -2,6 +2,10 @@ from mido import MidiFile
 import matplotlib.pyplot as plt
 import numpy as np
 import visualize.midi as vm
+from tqdm import tqdm
+import os
+import pandas as pd
+import csv
 
 
 def get_note(midi_file):
@@ -11,23 +15,34 @@ def get_note(midi_file):
             if hasattr(msg, 'note') and hasattr(msg, 'velocity'):
                 if msg.velocity != 0:
                     notes.append(msg.note)
-    # plt.plot(notes, 'r--')
-    # plt.show()
     return np.array(notes)
 
 
 def get_feature(notes):
-    feature = []
-    # feature.append(notes.min())
-    # feature.append(notes.max())
-    # feature.append(notes.mean())
-    # feature.append(np.median(notes))
+    feature = [notes.min(), notes.max(), notes.mean(), np.median(notes)]
     hit, bins = np.histogram(notes, bins=range(0, 128))
+    feature.extend(hit)
     return feature
 
 
 if __name__ == '__main__':
-    notes = get_note(MidiFile('Data/MIDI_Genres/train_set/7thst.mid'))
-    print(get_feature(notes))
-    vm.draw(notes)
-    vm.draw_histogram(notes)
+    data_source_path = 'Data/MIDI_Genres/train_set/'
+
+    features = []
+    labels = pd.read_csv('Data/trainLabels.csv')
+    labels = labels.set_index('name')
+
+    for name, label in tqdm(labels.iterrows()):
+        label = label['label']
+        path = data_source_path + name
+        if os.path.exists(path):
+            try:
+                feature = get_feature(get_note(MidiFile(path)))
+                feature.append(label)
+                feature.append(name)
+                features.append(feature)
+            except:
+                print(name)
+    with open(data_source_path + 'features.csv', 'w', newline='') as output:
+        wr = csv.writer(output, quoting=csv.QUOTE_ALL)
+        wr.writerows(features)
